@@ -1,12 +1,15 @@
+import org.apache.zookeeper.AsyncCallback;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.data.Stat;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 public class TestConfig {
     ZooKeeper zk;
+    MyConf myConf;
 
     @Before
     public void conn(){
@@ -24,10 +27,23 @@ public class TestConfig {
 
     @Test
     public void getConfig(){
-        zk.exists("/AppConf", new Watcher() {
-            public void process(WatchedEvent watchedEvent) {
+        WatchCallBack watchCallBack = new WatchCallBack();
+        watchCallBack.setZk(zk);
+        watchCallBack.setConf(myConf);
 
+        while (true){
+            if(myConf.getConf().equals("")){
+                System.out.println("conf lost");
+                watchCallBack.aWait();
+            }else {
+                System.out.println(myConf.getConf());
             }
-        })
+
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
